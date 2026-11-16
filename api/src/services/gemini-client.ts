@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { AppError } from '../errors/app-error.js';
 
 export const GEMINI_MODEL = 'gemini-3.5-flash-lite';
@@ -9,13 +9,14 @@ export const CATEGORIES = ['biling', 'technical', 'account', 'other'] as const;
 export const PRIORITIES = ['low', 'medium', 'high'] as const;
 
 const classificationJsonSchema = {
-    type: 'object',
+    type: Type.OBJECT,
     properties: {
         category: { type: 'string', enum: [...CATEGORIES] },
         priority: { type: 'string', enum: [...PRIORITIES] },
         summary: { type: 'string'}
     },
-    required: ['category', 'priority', 'summary']
+    required: ['category', 'priority', 'summary'],
+    propertyOrdering: ['category', 'priority', 'summary']
 };
 
 const SYSTEM_INSTRUCTION = `You classify customer support messages.
@@ -41,7 +42,7 @@ export async function* streamClassification(
             contents: `<message>\n${message}</message>`,
             config: {
                 systemInstruction: SYSTEM_INSTRUCTION,
-                responseMimeType: 'apllication/json',
+                responseMimeType: 'application/json',
                 responseJsonSchema: classificationJsonSchema,
                 abortSignal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
             }
