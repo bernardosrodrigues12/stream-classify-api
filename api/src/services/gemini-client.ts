@@ -1,12 +1,10 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { AppError } from '../errors/app-error.js';
+import { CATEGORIES, PRIORITIES } from '../schemas/classification.constants.js';
 
 export const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
 const REQUEST_TIMEOUT_MS = 30_000;
-
-export const CATEGORIES = ['biling', 'technical', 'account', 'other'] as const;
-export const PRIORITIES = ['low', 'medium', 'high'] as const;
 
 const classificationJsonSchema = {
     type: Type.OBJECT,
