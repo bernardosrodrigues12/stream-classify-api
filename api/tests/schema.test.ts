@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { parseClassification } from '../src/schemas/classification.schema.js';
+import { CATEGORIES, PRIORITIES } from '../src/schemas/classification.constants.js';
 
 const validJson = JSON.stringify({
-    category: 'biling',
+    category: 'billing',
     priority: 'high',
     summary: 'Cliente foi cobrado duas vezes no cartão'
 });
@@ -13,8 +14,13 @@ describe('parseClassification', () => {
 
         expect(result.ok).toBe(true);
         if (result.ok) {
-            expect(result.data.category).toBe('biling');
+            expect(result.data.category).toBe('billing');
         }
+    });
+
+    it('keeps the category and priority lists as expected', () => {
+        expect(CATEGORIES).toEqual(['billing', 'technical', 'account', 'other']);
+        expect(PRIORITIES).toEqual(['low', 'medium', 'high']);
     });
 
     it('rejects an enum value outside the allowed list', () => {
