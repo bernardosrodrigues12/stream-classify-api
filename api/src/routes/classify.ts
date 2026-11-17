@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { AppError } from '../errors/app-error.js';
+import { parseClassification } from '../schemas/classification.schema.js';
 import {
     createGeminiClient,
     streamClassification,
@@ -83,15 +84,35 @@ export async function handleClassify(
     });
     res.flushHeaders();
 
+    let fullText = '';
+    let clientGone = false;
+
     try {
         for await (const text of streamClassification(getGeminiClient(), message)) {
         if (res.destroyed) {
+            clientGone = true;
             break;
         }
+        fullText += text;
         writeEvent(res, 'token', { text });
     }
 
-    writeEvent(res, 'done', { requestId });
+        if (!clientGone) {
+            const parsed = parseClassification(fullText);
+
+            if (parsed.ok) {
+                writeEvent(res, 'result', parsed.data);
+                writeEvent(res, 'done', { requestId });
+            } else {
+                console.error(`[${requestId}] invalid model output: ${parsed.reason}`);
+                writeEvent(res, 'error', {
+                    code: 'invalid_output',
+                    message: 'The model returned an invalid classification.',
+                    retryable: false,
+                    requestId,
+                })
+            }
+        }
     } catch (error) {
     const appError =
         error instanceof AppError
