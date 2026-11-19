@@ -6,3 +6,9 @@ export interface Classification {
     priority: Priority;
     summary: string
 }
+
+export interface ClassifyError {
+    code: string;
+    message: string;
+    retryable: boolean;
+}
