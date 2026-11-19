@@ -30,12 +30,12 @@ export function createGeminiClient(apiKey: string): GeminiClient {
     return new GoogleGenAI({ apiKey });
 }
 
-export async function* streamClassification(
+export async function openClassificationStream(
     client: GeminiClient,
     message: string,
-): AsyncGenerator<string> {
+): Promise<AsyncIterable<{ text?: string }>> {
     try {
-        const stream = await client.models.generateContentStream({
+        return await client.models.generateContentStream({
             model: GEMINI_MODEL,
             contents: `<message>\n${message}</message>`,
             config: {
@@ -43,9 +43,18 @@ export async function* streamClassification(
                 responseMimeType: 'application/json',
                 responseJsonSchema: classificationJsonSchema,
                 abortSignal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-            }
+            },
         });
+    } catch (error) {
+        throw toAppError(error);
+    }
+}
 
+
+export async function* readClassificationText(
+    stream: AsyncIterable<{ text?: string }>,
+): AsyncGenerator<string> {
+    try {
         for await (const chunk of stream) {
             const text = chunk.text;
             if (text) {
@@ -62,7 +71,7 @@ function toAppError(error: unknown): AppError {
         return error;
     }
 
-    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+    if (error instanceof Error && error.name === 'TimeoutError') {
         return new AppError('timeout', 'The model did not respond in time.', true)
     }
 
