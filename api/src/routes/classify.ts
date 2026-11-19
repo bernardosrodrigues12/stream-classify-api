@@ -3,9 +3,11 @@ import { AppError } from '../errors/app-error.js';
 import { parseClassification } from '../schemas/classification.schema.js';
 import {
     createGeminiClient,
-    streamClassification,
+    openClassificationStream,
+    readClassificationText,
     type GeminiClient,
 } from '../services/gemini-client.js';
+import { withRetry } from '../services/retry.js';
 import { writeEvent } from '../sse/write-event.js';
 
 const MAX_BODY_BYTES = 4_096;
@@ -23,7 +25,6 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
     res.end(JSON.stringify(body));
 }
 
-// Returns the raw body, or null when it exceeds the size limit.
 async function readBody(req: IncomingMessage): Promise<string | null> {
     const chunks: Buffer[] = [];
     let size = 0;
@@ -39,7 +40,6 @@ async function readBody(req: IncomingMessage): Promise<string | null> {
     return Buffer.concat(chunks).toString('utf8');
 }
 
-// Expects { "message": "..." }. Returns the trimmed message or null when invalid.
 function parseMessage(raw: string): string | null {
     try {
         const body: unknown = JSON.parse(raw);
@@ -63,7 +63,6 @@ function parseMessage(raw: string): string | null {
         return null;
     }
 }
-
 export async function handleClassify(
     req: IncomingMessage,
     res: ServerResponse,
@@ -88,14 +87,18 @@ export async function handleClassify(
     let clientGone = false;
 
     try {
-        for await (const text of streamClassification(getGeminiClient(), message)) {
-        if (res.destroyed) {
-            clientGone = true;
-            break;
+        const stream = await withRetry(() =>
+            openClassificationStream(getGeminiClient(), message),
+        );
+
+        for await (const text of readClassificationText(stream)) {
+            if (res.destroyed) {
+                clientGone = true;
+                break;
+            }
+            fullText += text;
+            writeEvent(res, 'token', { text });
         }
-        fullText += text;
-        writeEvent(res, 'token', { text });
-    }
 
         if (!clientGone) {
             const parsed = parseClassification(fullText);
@@ -110,25 +113,25 @@ export async function handleClassify(
                     message: 'The model returned an invalid classification.',
                     retryable: false,
                     requestId,
-                })
+                });
             }
         }
     } catch (error) {
-    const appError =
-        error instanceof AppError
-        ? error
-        : new AppError('provider_error', 'Unexpected error while classifying.', false);
+        const appError =
+            error instanceof AppError
+                ? error
+                : new AppError('provider_error', 'Unexpected error while classifying.', false);
 
-    if (!(error instanceof AppError)) {
-        console.error(`[${requestId}] unexpected error:`, error);
-    }
+        if (!(error instanceof AppError)) {
+            console.error(`[${requestId}] unexpected error:`, error);
+        }
 
-    writeEvent(res, 'error', {
-        code: appError.code,
-        message: appError.message,
-        retryable: appError.retryable,
-        requestId,
-    });
+        writeEvent(res, 'error', {
+            code: appError.code,
+            message: appError.message,
+            retryable: appError.retryable,
+            requestId,
+        });
     } finally {
         res.end();
     }
