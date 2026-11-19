@@ -62,7 +62,7 @@ function toAppError(error: unknown): AppError {
         return error;
     }
 
-    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+    if (error instanceof Error && error.name === 'TimeoutError') {
         return new AppError('timeout', 'The model did not respond in time.', true)
     }
 
