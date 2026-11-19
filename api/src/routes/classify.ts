@@ -7,7 +7,7 @@ import {
     readClassificationText,
     type GeminiClient,
 } from '../services/gemini-client.js';
-import { withRetry } from '../services/retry.js';
+import { withRetry, type RetryOptions } from '../services/retry.js';
 import { writeEvent } from '../sse/write-event.js';
 
 const MAX_BODY_BYTES = 4_096;
@@ -63,10 +63,17 @@ function parseMessage(raw: string): string | null {
         return null;
     }
 }
+
+export interface ClassifyDeps {
+    client?: GeminiClient;
+    retryOptions?: Partial<RetryOptions>;
+}
+
 export async function handleClassify(
     req: IncomingMessage,
     res: ServerResponse,
     requestId: string,
+    deps: ClassifyDeps = {},
 ): Promise<void> {
     const raw = await readBody(req);
     const message = raw === null ? null : parseMessage(raw);
@@ -87,8 +94,11 @@ export async function handleClassify(
     let clientGone = false;
 
     try {
+        const client = deps.client ?? getGeminiClient();
+
         const stream = await withRetry(() =>
-            openClassificationStream(getGeminiClient(), message),
+            openClassificationStream(client, message),
+            deps.retryOptions,
         );
 
         for await (const text of readClassificationText(stream)) {
