@@ -2,7 +2,7 @@
 
 Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 
-## [Unreleased]
+## [0.2.0] - 2026-11-20
 
 ### Adicionado
 - Endpoint `POST /api/classify`, que recebe `{ "message": string }` e responde com SSE. Eventos: `token`, `result`, `done` e `error` (com `code`, `message` e `retryable`).
