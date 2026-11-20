@@ -35,14 +35,26 @@ export function useClassifyStream() {
             });
 
             if (!res.ok || !res.body) {
-                setError(GENERIC_ERROR);
+                const gatewayDown = res.status === 502 || res.status === 503 || res.status === 504;
+
+                setError(
+                    res.status === 400 
+                    ? { code: 'invalid_request', message: 'Mensagem Inválida', retryable: false }
+                    : {
+                        code: 'network_error',
+                        message: 'Não foi possível falar com a API. Confirme se ela está rodando na porta 3000.',
+                        retryable: gatewayDown
+                    },
+                );
                 setStatus('error');
-                return
+                return;
             }
 
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let gotResult = false;
+            let gotError = false;
 
             while (true) {
                 const { value, done } = await reader.read();
@@ -60,15 +72,22 @@ export function useClassifyStream() {
                     const data = JSON.parse(dataLine);
 
                     if (event === 'token') {
+                        gotResult = true;
                         setStatus('streaming');
                         setPartialText((prev) => prev + data.text);
                     } else if (event === 'result') {
                         setResult(data as Classification);
                         setStatus('success');
                     } else if (event === 'error') {
+                        gotError = true
                         setError(data as ClassifyError);
                         setStatus('error');
                     }
+                }
+
+                if (!gotResult && !gotError) {
+                    setError(GENERIC_ERROR);
+                    setStatus('error');
                 }
             }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
