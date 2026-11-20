@@ -10,3 +10,4 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 - Retry com backoff exponencial e jitter, limitado a 3 tentativas e aplicado só a erros retryable.
 - Erros tipados com `code`, `message` e `retryable`, cobrindo limite de taxa, erro do provedor, timeout e saída inválida.
 - Testes automatizados para validação, retry e cenários de falha da rota.
+- Interface React (Vite) que consome o stream SSE, com estados de carregamento, streaming parcial, sucesso e erro com "Tentar novamente".
