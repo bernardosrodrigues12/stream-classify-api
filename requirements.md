@@ -6,12 +6,12 @@
 
 ## Fase 0: Preparação (antes de segunda)
 
-- [ ] Ler a documentação oficial de saída estruturada (JSON) do Gemini
+- Ler a documentação oficial de saída estruturada (JSON) do Gemini
 - Criar ou confirmar a chave de API no Google AI Studio
 - Confirmar que o modelo `gemini-3.5-flash-lite` aparece na lista de modelos da conta
 - Instalar Node.js LTS e Git, e verificar as versões no terminal
 - Criar a conta ou confirmar acesso ao GitHub
-- [ ] oi
+
 ---
 
 ## Passo 1: Setup do repositório (Seg 16/11, parte de 4h)
