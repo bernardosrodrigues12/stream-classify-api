@@ -2,6 +2,8 @@
 
 API de classificação de mensagens de suporte com streaming SSE, validação de saída com Zod e interface React.
 
+![Interface com streaming de tokens r esultado validado](docs/ui-streaming.gif.gif)
+
 ## Funcionalidades
 
 - Streaming de tokens com Server-Sent Events.
