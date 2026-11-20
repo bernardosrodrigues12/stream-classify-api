@@ -72,48 +72,12 @@ Corpo da requisição:
 
 Resposta: `text/event-stream` com os eventos abaixo.
 
-|
- Evento 
-|
- Dados 
-|
- Quando 
-|
-|
----
-|
----
-|
----
-|
-|
-`token`
-|
-`{ "text": string }`
-|
- A cada fragmento recebido do modelo 
-|
-|
-`result`
-|
-`{ "category", "priority", "summary" }`
-|
- Saída validada com sucesso 
-|
-|
-`done`
-|
-`{ "requestId" }`
-|
- Fim bem-sucedido do stream 
-|
-|
-`error`
-|
-`{ "code", "message", "retryable", "requestId" }`
-|
- Falha em qualquer etapa 
-|
+   | Evento | Dados | Quando |
+   |---|---|---|
+   | `token` | `{ "text": string }` | A cada fragmento recebido do modelo |
+   | `result` | `{ "category", "priority", "summary" }` | Saída validada com sucesso |
+   | `done` | `{ "requestId" }` | Fim bem-sucedido do stream |
+   |`error` | `{ "code", "message", "retryable", "requestId" }` | Falha em qualquer etapa |
 
 Categorias: `billing`, `technical`, `account`, `other`.
 Prioridades: `low`, `medium`, `high`.
