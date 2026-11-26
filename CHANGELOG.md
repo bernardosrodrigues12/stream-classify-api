@@ -2,7 +2,7 @@
 
 Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 
-## [0.3.0] - 2026-11-29
+## [0.3.0] - 2026-11-26
 
 ### Adicionado
 - Serviço FastAPI em `api-fastapi/`, com `POST /api/classify` e `GET /health`.
