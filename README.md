@@ -1,5 +1,7 @@
 # stream-classify-api
 
+> Versão FastAPI da API: veja [api-fastapi/README.md](api-fastapi/README.md).
+
 API de classificação de mensagens de suporte com streaming SSE, validação de saída com Zod e interface React.
 
 ![Interface com streaming de tokens r esultado validado](docs/ui-streaming.gif.gif)
