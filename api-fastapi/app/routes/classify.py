@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api")
 
 async def classify_events(text: str, client: ModelClient) -> AsyncIterator[str]:
     chunks: list[str] = []
+    stream = client.stream_classification(text)
 
     try: 
         async for token in client.stream_classification(text):
